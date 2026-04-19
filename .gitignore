@@ -1,0 +1,26 @@
+# ===== Data raw (chứa PII / quá lớn) =====
+full_data.csv
+data_tien_ghe.xlsx
+data_tien_ghe_fixed.xlsx
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.Python
+*.egg-info/
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# ===== Streamlit =====
+.streamlit/secrets.toml
+
+# ===== OS =====
+Thumbs.db
