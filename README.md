@@ -16,11 +16,19 @@ Dashboard phân tích hành vi khách hàng và tỷ lệ chốt tour dựa trê
 # Cài dependencies
 pip install -r requirements.txt
 
+# (Lần đầu) sinh aggregates từ raw data
+python3 process_full.py      # → data/events_clean.parquet
+python3 etl_aggregates.py    # → data/aggregates/*.parquet
+
 # Chạy dashboard
 streamlit run dashboard.py
 ```
 
 Mở http://localhost:8501.
+
+## Scale lên 7M+ rows
+
+Khi có dataset lớn (>100MB Parquet), xem [MIGRATION_7M.md](MIGRATION_7M.md) — 5 bước upload lên Hugging Face Hub và config dashboard dùng DuckDB query remote.
 
 ## Deploy lên Streamlit Community Cloud
 

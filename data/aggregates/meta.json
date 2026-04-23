@@ -1,0 +1,36 @@
+{
+  "utm_sources": [
+    "DIGI_Admicro",
+    "DIGI_BLOG",
+    "DIGI_Facebook",
+    "DIGI_Google",
+    "DIGI_SEO",
+    "DIGI_Zalo",
+    "DIGI_google",
+    "DIG_Google",
+    "PR",
+    "TourDetail",
+    "accesstrade",
+    "chatgpt.com",
+    "cityads",
+    "digi_google",
+    "fb",
+    "fb-SiteLink",
+    "instabio",
+    "internalbl",
+    "masoffer",
+    "pr",
+    "zalo"
+  ],
+  "countries": [],
+  "devices": [
+    "mobile",
+    "pc",
+    "tablet"
+  ],
+  "date_min": "2026-01-11",
+  "date_max": "2026-01-17",
+  "total_events": 14500,
+  "total_sessions": 11640,
+  "total_profiles": 11752
+}

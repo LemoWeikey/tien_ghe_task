@@ -1,7 +1,11 @@
 # ===== Data raw (chứa PII / quá lớn) =====
 full_data.csv
+full_data.xlsx
 data_tien_ghe.xlsx
 data_tien_ghe_fixed.xlsx
+
+# ===== Parquet files > 100MB sẽ được upload HF Hub thay vì commit =====
+# (Xem MIGRATION_7M.md). Mặc định files < 100MB cho 14K data vẫn commit được.
 
 # ===== Python =====
 __pycache__/

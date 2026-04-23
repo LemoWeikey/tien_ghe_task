@@ -8,14 +8,22 @@ Xử lý full_data.csv:
 """
 
 import re
+import sys
 import pandas as pd
 from pathlib import Path
 
-BASE = Path("/Users/jamesgatsby/tien_ghe_task")
-SRC = BASE / "full_data.csv"
-OUT_CLEAN = BASE / "full_data_clean.csv"            # file sạch sau khi fix + drop
-OUT_EVENT_DUR = BASE / "full_data_event_duration.csv"   # duration từng event
-OUT_LINK_DUR = BASE / "full_data_link_duration.csv"     # aggregate theo link
+BASE = Path(__file__).parent
+DATA_DIR = BASE / "data"
+DATA_DIR.mkdir(exist_ok=True)
+
+# Input: ưu tiên CSV, chấp nhận XLSX cho input 7M từ user
+SRC_CANDIDATES = [BASE / "full_data.csv", BASE / "full_data.xlsx"]
+SRC = next((p for p in SRC_CANDIDATES if p.exists()), None)
+
+OUT_CLEAN = BASE / "full_data_clean.csv"
+OUT_PARQUET = DATA_DIR / "events_clean.parquet"          # file chính cho dashboard + DuckDB
+OUT_EVENT_DUR = BASE / "full_data_event_duration.csv"
+OUT_LINK_DUR = BASE / "full_data_link_duration.csv"
 
 
 # ---------- Fix tiếng Việt ----------
@@ -99,8 +107,16 @@ KEEP_COLS = [
 ]
 
 # ---------- Load ----------
-print("Reading CSV ...")
-df = pd.read_csv(SRC, low_memory=False)
+if SRC is None:
+    sys.exit(
+        "❌ Không tìm thấy input. Đặt 'full_data.csv' hoặc 'full_data.xlsx' cùng thư mục rồi chạy lại."
+    )
+
+print(f"Reading {SRC.name} ...")
+if SRC.suffix.lower() == ".xlsx":
+    df = pd.read_excel(SRC)
+else:
+    df = pd.read_csv(SRC, low_memory=False)
 print(f"  rows={len(df)}  cols={len(df.columns)}")
 
 # Chỉ giữ cột cần (bỏ request_headers_*, metadata_*, cf-*, geo chi tiết...)
@@ -152,10 +168,33 @@ df_active = df[
     & (~df["link"].isin(HOMEPAGE_URLS))
 ].copy()
 
+# Loại PII khỏi output để an toàn khi push public
+PII_COLS = [
+    "properties_contactInfo_email",
+    "properties_contactInfo_phoneNumber",
+    "properties_contactInfo_address",
+    "properties_contactInfo_contactName",
+    "properties_contactInfo_note",
+    "properties_fullName",
+    "properties_gender",
+]
+for c in PII_COLS:
+    if c in df.columns:
+        df = df.drop(columns=c)
+    if c in df_active.columns:
+        df_active = df_active.drop(columns=c)
+
 # ---------- Xuất ----------
-# 1) File sạch đã fix encoding + drop cột, giữ cả các dòng cuối cùng (không có duration)
-df.drop(columns=["next_ts"]).to_csv(OUT_CLEAN, index=False)
-print(f"  wrote {OUT_CLEAN.name}  rows={len(df)}  cols={df.shape[1]-1}")
+# 1a) CSV (backward compatibility)
+out_df = df.drop(columns=["next_ts"])
+out_df.to_csv(OUT_CLEAN, index=False)
+print(f"  wrote {OUT_CLEAN.name}  rows={len(out_df)}  cols={out_df.shape[1]}")
+
+# 1b) Parquet (file chính dùng cho dashboard + DuckDB drill-down)
+out_df.to_parquet(OUT_PARQUET, compression="zstd", index=False)
+size_mb = OUT_PARQUET.stat().st_size / 1024 / 1024
+print(f"  wrote {OUT_PARQUET.relative_to(BASE)}  "
+      f"rows={len(out_df)}  size={size_mb:.1f} MB (zstd)")
 
 # 2) Duration từng event (chỉ những event có duration hợp lệ)
 event_cols = [
